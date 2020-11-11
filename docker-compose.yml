@@ -1,0 +1,13 @@
+version: '3.4'
+
+services:
+  runner:
+    build:
+      context: .
+      target: dev
+    working_dir: /code
+    command: go run main.go
+    ports: 
+      - 8000:8000
+    volumes:
+      - ./:/code
