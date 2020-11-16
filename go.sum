@@ -1,2 +1,6 @@
+github.com/google/uuid v1.1.2 h1:EVhdT+1Kseyi1/pUmXKaFxYsDNy9RQYkMWRH68J/W7Y=
+github.com/google/uuid v1.1.2/go.mod h1:TIyPZe4MgqvfeYDBFedMoGGpEw/LqOeaOT+nhxU+yHo=
 github.com/gorilla/mux v1.8.0 h1:i40aqfkR1h2SlN9hojwV5ZA91wcXFOvkdNIeFDP5koI=
 github.com/gorilla/mux v1.8.0/go.mod h1:DVbg23sWSpFRCP0SfiEN6jmj59UnW/n46BH5rLB71So=
+github.com/klassmann/cpfcnpj v0.0.0-20200907140233-a595c5fd8de1 h1:nT1t/3YnkjBWdVl6zmvmim6S8gjAZOpZi19iEBq3/Ko=
+github.com/klassmann/cpfcnpj v0.0.0-20200907140233-a595c5fd8de1/go.mod h1:2lGFirXS+qsYDFtk4OAzWXyILL3mrSAluEH26Ao65ZY=

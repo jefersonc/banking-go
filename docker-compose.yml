@@ -8,6 +8,6 @@ services:
     working_dir: /code
     command: go run main.go
     ports: 
-      - 8000:8000
+      - 8080:8080
     volumes:
       - ./:/code
