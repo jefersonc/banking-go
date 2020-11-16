@@ -1,44 +1,50 @@
 package usecase
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
-
 	"github.com/jefersonc/banking-go/src/domain"
 	"github.com/jefersonc/banking-go/src/vo"
 )
 
-type CreateAccount struct {
-	repository domain.AccountRepository
-}
+type (
+	CreateAccount struct {
+		repository domain.AccountRepository
+	}
 
-type CreateAccountPayload struct {
-	documentNumber string
-}
+	CreateAccountPayload struct {
+		DocumentNumber string `json:"document_number"`
+	}
 
-func (uc *CreateAccount) Invoke(w http.ResponseWriter, r *http.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
+	CreateAccountResponse struct {
+		ID             string `json:"id"`
+		DocumentType   string `json:"document_type"`
+		DocumentNumber string `json:"document_number"`
+	}
+)
 
-	defer r.Body.Close()
+func (uc *CreateAccount) Execute(payload CreateAccountPayload) (*CreateAccountResponse, error) {
+	document, err := vo.NewDocument("CPF", payload.DocumentNumber)
 
-	var payload CreateAccountPayload
-	json.Unmarshal(body, &payload)
-
-	fmt.Printf(string(body))
-
-	document, _ := vo.NewDocument("CPF", payload.documentNumber)
+	if err != nil {
+		return nil, NewUserError(err)
+	}
 
 	account := domain.NewAccount(vo.GenerateID(), document)
 
-	err := uc.repository.Push(account)
+	err = uc.repository.Push(account)
 
 	if err != nil {
-		fmt.Println(err)
+		return nil, NewApplicationError(err)
 	}
 
-	fmt.Println(account)
+	return uc.output(account), nil
+}
+
+func (uc *CreateAccount) output(account *domain.Account) *CreateAccountResponse {
+	return &CreateAccountResponse{
+		ID:             account.GetID().Value(),
+		DocumentType:   account.GetDocument().Type(),
+		DocumentNumber: account.GetDocument().Number(),
+	}
 }
 
 func NewCreateAccount(repository domain.AccountRepository) CreateAccount {

@@ -2,17 +2,25 @@ package domain
 
 import "errors"
 
-type Movimentation struct {
-	account      *Account
-	transactions *[]Transaction
-}
-
 var (
 	ErrInsufficientFunds = errors.New("insufficient funds")
 )
 
-func (m *Movimentation) CheckMovimentation(transactionIntention *Transaction, operation *Operation) error {
-	if operation.GetFinality() == OperationCredit {
+type Movimentation struct {
+	account      *Account
+	transactions []*Transaction
+}
+
+func (m *Movimentation) GetAccount() *Account {
+	return m.account
+}
+
+func (m *Movimentation) GetTransactions() []*Transaction {
+	return m.transactions
+}
+
+func (m *Movimentation) CheckMovimentation(transactionIntention *Transaction) error {
+	if transactionIntention.GetOperation().GetFinality() == OperationCredit {
 		return nil
 	}
 
@@ -28,7 +36,7 @@ func (m *Movimentation) CheckMovimentation(transactionIntention *Transaction, op
 func (m *Movimentation) GetBalance() float64 {
 	var balance float64 = 0.0
 
-	for _, transaction := range *m.transactions {
+	for _, transaction := range m.transactions {
 		if transaction.operation.GetFinality() == OperationCredit {
 			balance += transaction.amount.Value()
 			continue
@@ -40,6 +48,6 @@ func (m *Movimentation) GetBalance() float64 {
 	return balance
 }
 
-func MovimentationFactory(account *Account, transactions *[]Transaction) *Movimentation {
+func MovimentationFactory(account *Account, transactions []*Transaction) *Movimentation {
 	return &Movimentation{account, transactions}
 }

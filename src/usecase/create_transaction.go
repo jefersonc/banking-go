@@ -1,78 +1,101 @@
 package usecase
 
 import (
-	"encoding/json"
-	"fmt"
-	"io/ioutil"
-	"net/http"
 	"time"
 
 	"github.com/jefersonc/banking-go/src/domain"
 	"github.com/jefersonc/banking-go/src/vo"
 )
 
-type CreateTransfer struct {
-	accountRepository     domain.AccountRepository
-	operationRepository   domain.OperationRepository
-	transactionRepository domain.TransactionRepository
-}
-
-type CreateTransferPayload struct {
-	accountID       string
-	operationTypeID string
-	amount          float64
-}
-
-func (uc *CreateTransfer) Invoke(w http.ResponseWriter, r *http.Request) {
-	body, _ := ioutil.ReadAll(r.Body)
-
-	defer r.Body.Close()
-
-	var payload CreateTransferPayload
-	json.Unmarshal(body, &payload)
-
-	accountId, _ := vo.NewID(payload.accountID)
-	operationId, _ := vo.NewID(payload.operationTypeID)
-
-	account, err := uc.accountRepository.Find(accountId)
-
-	if err != nil {
-		fmt.Println(err)
+type (
+	// CreateTransaction is a usecase definition
+	CreateTransaction struct {
+		accountRepository     domain.AccountRepository
+		operationRepository   domain.OperationRepository
+		transactionRepository domain.TransactionRepository
 	}
 
-	operation, err := uc.operationRepository.Find(operationId)
-
-	if err != nil {
-		fmt.Println(err)
+	// CreateTransactionPayload is a usecase parameters definition
+	CreateTransactionPayload struct {
+		AccountID       string  `json:"account_id"`
+		OperationTypeID string  `json:"operation_type_id"`
+		Amount          float64 `json:"amount"`
 	}
 
-	amount, err := vo.NewAmount(payload.amount)
+	// CreateTransactionResponse is a usecase response definition
+	CreateTransactionResponse struct {
+		TransactionID string  `json:"transaction_id"`
+		AccountID     string  `json:"account_id"`
+		OperationID   string  `json:"operation_id"`
+		Date          string  `json:"date"`
+		Amount        float64 `json:"amount"`
+		Finality      string  `json:"finality"`
+	}
+)
+
+func (uc *CreateTransaction) Execute(payload CreateTransactionPayload) (*CreateTransactionResponse, error) {
+	amount, err := vo.NewAmount(payload.Amount)
 
 	if err != nil {
-		fmt.Println(err)
+		return nil, NewUserError(err)
+	}
+
+	accountID, err := vo.NewID(payload.AccountID)
+
+	if err != nil {
+		return nil, NewUserError(err)
+	}
+
+	operationID, err := vo.NewID(payload.OperationTypeID)
+
+	if err != nil {
+		return nil, NewUserError(err)
+	}
+
+	account, err := uc.accountRepository.Find(accountID)
+
+	if err != nil {
+		return nil, NewApplicationError(err)
+	}
+
+	operation, err := uc.operationRepository.Find(operationID)
+
+	if err != nil {
+		return nil, NewApplicationError(err)
 	}
 
 	transactionIntention := domain.NewTransaction(vo.GenerateID(), account, operation, amount, time.Now())
 	transactions, err := uc.transactionRepository.FetchByAccount(account)
 
 	if err != nil {
-		fmt.Println(err)
+		return nil, NewApplicationError(err)
 	}
 
 	movimentation := domain.MovimentationFactory(account, transactions)
 
-	if movimentation.CheckMovimentation(transactionIntention, operation) != nil {
-		fmt.Println(err)
+	if movimentation.CheckMovimentation(transactionIntention) != nil {
+		return nil, NewDomainError(err)
 	}
 
 	if uc.transactionRepository.Push(transactionIntention) != nil {
-		fmt.Println(err)
+		return nil, NewApplicationError(err)
 	}
 
-	//success
-	fmt.Println(account)
+	return uc.output(transactionIntention), nil
 }
 
-func NewCreateTransaction(account domain.AccountRepository, operation domain.OperationRepository, transaction domain.TransactionRepository) CreateTransfer {
-	return CreateTransfer{account, operation, transaction}
+func (uc *CreateTransaction) output(transaction *domain.Transaction) *CreateTransactionResponse {
+	return &CreateTransactionResponse{
+		TransactionID: transaction.GetID().Value(),
+		AccountID:     transaction.GetAccount().GetID().Value(),
+		OperationID:   transaction.GetOperation().GetID().Value(),
+		Date:          transaction.GetDate().Format("2006-01-02T15:04:05-0700"),
+		Amount:        transaction.GetAmount().Value(),
+		Finality:      transaction.GetOperation().GetFinality(),
+	}
+}
+
+// NewCreateTransaction is a constructor
+func NewCreateTransaction(account domain.AccountRepository, operation domain.OperationRepository, transaction domain.TransactionRepository) CreateTransaction {
+	return CreateTransaction{account, operation, transaction}
 }

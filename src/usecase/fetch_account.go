@@ -1,34 +1,48 @@
 package usecase
 
 import (
-	"fmt"
-	"net/http"
-
-	"github.com/gorilla/mux"
 	"github.com/jefersonc/banking-go/src/domain"
 	"github.com/jefersonc/banking-go/src/vo"
 )
 
-type FetchAccount struct {
-	repository domain.AccountRepository
-}
+type (
+	FetchAccount struct {
+		repository domain.AccountRepository
+	}
 
-func (uc FetchAccount) Invoke(w http.ResponseWriter, r *http.Request) {
-	requestId := string(mux.Vars(r)["id"])
+	FetchAccountPayload struct {
+		ID string
+	}
 
-	id, err := vo.NewID(requestId)
+	FetchAccountResponse struct {
+		ID             string `json:"id"`
+		DocumentType   string `json:"document_type"`
+		DocumentNumber string `json:"document_number"`
+	}
+)
+
+func (uc *FetchAccount) Execute(payload FetchAccountPayload) (*FetchAccountResponse, error) {
+	id, err := vo.NewID(payload.ID)
 
 	if err != nil {
-		fmt.Println(err)
+		return nil, NewUserError(err)
 	}
 
 	account, err := uc.repository.Find(id)
 
 	if err != nil {
-		fmt.Println(err)
+		return nil, NewApplicationError(err)
 	}
 
-	fmt.Println(account)
+	return uc.output(account), nil
+}
+
+func (uc *FetchAccount) output(account *domain.Account) *FetchAccountResponse {
+	return &FetchAccountResponse{
+		ID:             account.GetID().Value(),
+		DocumentType:   account.GetDocument().Type(),
+		DocumentNumber: account.GetDocument().Number(),
+	}
 }
 
 func NewFetchAccount(repository domain.AccountRepository) FetchAccount {

@@ -9,7 +9,7 @@ import (
 // TransactionRepository repository manage all interactions with persistence layer
 type TransactionRepository interface {
 	Push(transaction *Transaction) error
-	FetchByAccount(account *Account) (*[]Transaction, error)
+	FetchByAccount(account *Account) ([]*Transaction, error)
 }
 
 // Transaction is entity/aggregator
@@ -32,7 +32,7 @@ func (t Transaction) GetAccount() *Account {
 }
 
 // Getoperation is a getter for operation attribute
-func (t Transaction) Getoperation() *Operation {
+func (t Transaction) GetOperation() *Operation {
 	return t.operation
 }
 

@@ -9,18 +9,19 @@ import (
 
 type PosgresTransactionRepository struct{}
 
-func (p PosgresTransactionRepository) FetchByAccount(account *domain.Account) (*[]domain.Transaction, error) {
-	var transactions []domain.Transaction
+func (p PosgresTransactionRepository) FetchByAccount(account *domain.Account) ([]*domain.Transaction, error) {
 
 	id := vo.GenerateID()
 
-	operation := domain.NewOperation(id, "teste")
+	operation := domain.NewOperation(id, "teste", "CREDIT")
 	amount, _ := vo.NewAmount(10.00)
 	transaction := domain.NewTransaction(id, account, operation, amount, time.Now())
 
-	transactions[0] = transaction
+	transactions := []*domain.Transaction{
+		transaction,
+	}
 
-	return &transactions, nil
+	return transactions, nil
 }
 
 func (p PosgresTransactionRepository) Push(transaction *domain.Transaction) error {
