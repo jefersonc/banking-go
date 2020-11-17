@@ -59,3 +59,15 @@ func (m *MockedOperationRepository) Find(id *vo.ID) (*domain.Operation, error) {
 func NewMockedOperationRepository() *MockedOperationRepository {
 	return &MockedOperationRepository{}
 }
+
+func (m *MockedTransactionRepository) Push(transaction *domain.Transaction) error {
+	return nil
+}
+
+func (m *MockedTransactionRepository) FetchByAccount(account *domain.Account) ([]*domain.Transaction, error) {
+	return []*domain.Transaction{}, nil
+}
+
+func NewMockedTransactionRepository() *MockedTransactionRepository {
+	return &MockedTransactionRepository{}
+}

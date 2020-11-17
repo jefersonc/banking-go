@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/jefersonc/banking-go/src/adapters/repository"
 	"github.com/jefersonc/banking-go/src/domain"
+	"github.com/jefersonc/banking-go/src/infra/database"
 	"github.com/jefersonc/banking-go/src/usecase"
 )
 
@@ -23,9 +24,11 @@ type Application struct {
 
 // Bootstrap method init applicatiob with default dependencies
 func Bootstrap(addr string) {
-	accountRepository := repository.CreatePostgresAccountRepository()
-	operationRepository := repository.CreatePostgresOperationRepository()
-	transactionRepository := repository.CreatePostgresTransactionRepository()
+	client := database.NewPostgresClient()
+
+	accountRepository := repository.CreatePostgresAccountRepository(client)
+	operationRepository := repository.CreatePostgresOperationRepository(client)
+	transactionRepository := repository.CreatePostgresTransactionRepository(client)
 
 	a := &Application{
 		mux.NewRouter(),

@@ -7,19 +7,21 @@ import (
 )
 
 // TransactionRepository repository manage all interactions with persistence layer
-type TransactionRepository interface {
-	Push(transaction *Transaction) error
-	FetchByAccount(account *Account) ([]*Transaction, error)
-}
+type (
+	TransactionRepository interface {
+		Push(transaction *Transaction) error
+		FetchByAccount(account *Account) ([]*Transaction, error)
+	}
 
-// Transaction is entity/aggregator
-type Transaction struct {
-	id        *vo.ID
-	account   *Account
-	operation *Operation
-	amount    *vo.Amount
-	date      time.Time
-}
+	// Transaction is entity/aggregator
+	Transaction struct {
+		id        *vo.ID
+		account   *Account
+		operation *Operation
+		amount    *vo.Amount
+		date      time.Time
+	}
+)
 
 // GetID is a getter for id attribute
 func (t Transaction) GetID() *vo.ID {

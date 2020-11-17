@@ -73,11 +73,15 @@ func (uc *CreateTransaction) Execute(payload CreateTransactionPayload) (*CreateT
 
 	movimentation := domain.MovimentationFactory(account, transactions)
 
-	if movimentation.CheckMovimentation(transactionIntention) != nil {
+	err = movimentation.CheckMovimentation(transactionIntention)
+
+	if err != nil {
 		return nil, NewDomainError(err)
 	}
 
-	if uc.transactionRepository.Push(transactionIntention) != nil {
+	err = uc.transactionRepository.Push(transactionIntention)
+
+	if err != nil {
 		return nil, NewApplicationError(err)
 	}
 
